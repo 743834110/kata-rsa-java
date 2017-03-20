@@ -31,4 +31,4 @@ run {
 }
 
 // Define the main class for the application
-mainClassName = 'App'
+mainClassName = 'com.ukdave.rsa.Main'
