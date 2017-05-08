@@ -14,6 +14,8 @@ in a real application!
 
 Type `gradlew run` to run the application.
 
+Command line arguments can be passed as follows: `gradlew run -Pargs=1`
+
 Type `gradlew test` to run the unit tests.
 
 To import into Eclipse, type `gradlew eclipse`, and then import as

@@ -10,3 +10,9 @@
 /.project
 /.settings/
 /bin/
+
+# App files
+key.pub
+key.prv
+message.txt
+message.dat
