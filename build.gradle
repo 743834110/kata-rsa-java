@@ -28,9 +28,6 @@ dependencies {
 
 run {
     standardInput = System.in
-    if (project.hasProperty('args')) {
-        args project.args.split('\\s')
-    }
 }
 
 // Define the main class for the application

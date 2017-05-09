@@ -22,4 +22,12 @@ public class KeyPair {
     public Key getPrivateKey() {
         return privateKey;
     }
+
+    @Override
+    public String toString() {
+        return "KeyPair{\n" +
+                "  publicKey=" + publicKey + ",\n" +
+                "  privateKey=" + privateKey + "\n" +
+                '}';
+    }
 }

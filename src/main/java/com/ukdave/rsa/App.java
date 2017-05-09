@@ -13,92 +13,106 @@ public class App {
 
     private final RSA rsa = new RSA();
 
-    public void generateKeyPair() throws IOException {
+    public void generateKeyPair() {
+        System.out.println("Generating key pair...");
         KeyPair keyPair = rsa.generateKeyPair(KEY_LENGTH);
-        writeKey(keyPair.getPrivateKey(), KEY_PRV);
-        writeKey(keyPair.getPublicKey(), KEY_PUB);
-    }
-
-    public void encryptMessage() throws IOException {
-        Key publicKey = readKey(KEY_PUB);
-        String message = readFile(MESSAGE_TXT);
-        String cipherText = new BigInteger(rsa.encrypt(message.getBytes(), publicKey)).toString();
-        writeFile(cipherText, MESSAGE_DAT);
-    }
-
-    public void decryptMessage() throws IOException {
-        Key privateKey = readKey(KEY_PRV);
-        BigInteger cipherText = new BigInteger(readFile(MESSAGE_DAT).trim());
-        String message = new String(rsa.decrypt(cipherText.toByteArray(), privateKey));
-        writeFile(message, MESSAGE_TXT);
-    }
-
-    public void clean() {
-        KEY_PUB.delete();
-        KEY_PRV.delete();
-        MESSAGE_TXT.delete();
-        MESSAGE_DAT.delete();
-    }
-
-    private Key readKey(final File file) throws IOException {
-        try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-            BigInteger modulus = new BigInteger(in.readLine().trim());
-            BigInteger exponent = new BigInteger(in.readLine().trim());
-            return new Key(modulus, exponent);
+        System.out.println(keyPair);
+        try {
+            IOUtils.writeKey(keyPair.getPrivateKey(), KEY_PRV);
+            IOUtils.writeKey(keyPair.getPublicKey(), KEY_PUB);
+        } catch (IOException ex) {
+            System.out.println("Error writing key pair: " + ex.getMessage());
         }
     }
 
-    private void writeKey(final Key key, final File file) throws IOException {
-        try (PrintWriter out = new PrintWriter(new FileWriter(file))) {
-            out.println(key.getModulus());
-            out.println(key.getExponent());
+    public void encryptMessage() {
+        System.out.println("Encrypting message...");
+
+        Key publicKey = null;
+        try {
+            publicKey = IOUtils.readKey(KEY_PUB);
+        } catch (IOException ex) {
+            System.out.println("Error loading public key: " + ex.getMessage());
+            return;
+        }
+
+        String message = null;
+        try {
+            message = IOUtils.readFile(MESSAGE_TXT);
+            System.out.println("Plain text: " + message);
+        } catch (IOException ex) {
+            System.out.println("Error reading message: " + ex.getMessage());
+            return;
+        }
+
+        byte[] cipherData = rsa.encrypt(message.getBytes(), publicKey);
+        String cipherText = new BigInteger(cipherData).toString();
+        System.out.println("Cipher text: " + cipherText);
+        try {
+            IOUtils.writeFile(cipherText, MESSAGE_DAT);
+        } catch (IOException ex) {
+            System.out.println("Error writing encrypted message: " + ex.getMessage());
         }
     }
 
-    private String readFile(final File file) throws IOException {
-        StringBuffer str = new StringBuffer();
-        try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-            str.append(in.readLine());
-        }
-        return str.toString();
-    }
+    public void decryptMessage() {
+        System.out.println("Decrypting message...");
 
-    private void writeFile(final String str, final File file) throws IOException {
-        try (PrintWriter out = new PrintWriter(new FileWriter(file))) {
-            out.print(str);
-            if (!str.endsWith("\n")) {
-                out.println();
-            }
+        Key privateKey = null;
+        try {
+            privateKey = IOUtils.readKey(KEY_PRV);
+        } catch (IOException ex) {
+            System.out.println("Error loading private key: " + ex.getMessage());
+            return;
+        }
+
+        BigInteger cipherData = null;
+        try {
+            String cipherText = IOUtils.readFile(MESSAGE_DAT).trim();
+            System.out.println("Cipher text: " + cipherText);
+            cipherData = new BigInteger(cipherText);
+        } catch (IOException ex) {
+            System.out.println("Error reading encrypted message: " + ex.getMessage());
+            return;
+        }
+
+        String message = new String(rsa.decrypt(cipherData.toByteArray(), privateKey));
+        System.out.println("Plain text: " + message);
+        try {
+            IOUtils.writeFile(message, MESSAGE_TXT);
+        } catch (IOException ex) {
+            System.out.println("Error writing decrypted message: " + ex.getMessage());
         }
     }
 
     public static void main(final String[] args) throws IOException {
-        if (args.length != 1) {
-            System.out.println("Usage: App <mode>");
-            System.out.println("  Modes:");
-            System.out.println("    1 - Generate key pair (key.pub, key.prv)");
-            System.out.println("    2 - Encrypt message (in: message.txt, out: message.dat)");
-            System.out.println("    3 - Decrypt message (in: message.dat, out: message.txt)");
-            System.out.println("    4 - Clean (delete keys and messages)");
-            System.exit(1);
-        }
         App app = new App();
-        switch (args[0]) {
-            case "1":
-                app.generateKeyPair();
-                break;
-            case "2":
-                app.encryptMessage();
-                break;
-            case "3":
-                app.decryptMessage();
-                break;
-            case "4":
-                app.clean();
-                break;
-            default:
-                System.out.println("Invalid mode");
-                System.exit(1);
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        while (true) {
+            System.out.println("Please select an option:");
+            System.out.println("  1. Generate key pair (key.pub, key.prv)");
+            System.out.println("  2. Encrypt message (in: message.txt, out: message.dat)");
+            System.out.println("  3. Decrypt message (in: message.dat, out: message.txt)");
+            System.out.println("  4. Exit");
+            System.out.print(">");
+            String choice = in.readLine();
+            switch (choice) {
+                case "1":
+                    app.generateKeyPair();
+                    break;
+                case "2":
+                    app.encryptMessage();
+                    break;
+                case "3":
+                    app.decryptMessage();
+                    break;
+                case "4":
+                    System.out.println("Bye!");
+                    System.exit(0);
+                default:
+                    System.out.println("Invalid choice.");
+            }
+            System.out.println();
         }
     }
 }

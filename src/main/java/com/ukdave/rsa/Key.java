@@ -23,4 +23,12 @@ public class Key {
     public BigInteger getExponent() {
         return exponent;
     }
+
+    @Override
+    public String toString() {
+        return "Key{\n" +
+                "    modulus=" + modulus + ",\n" +
+                "    exponent=" + exponent + "\n" +
+                "  }";
+    }
 }
